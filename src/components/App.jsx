@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import Searchbar from './Searchbar/Searchbar';
 import ImageGallery from '../components/ImageGallery/ImageGallery';
 import Button from '../components/Button/Button';
@@ -8,89 +8,116 @@ import Modal from './Modal/Modal';
 import { fetchImagesByQuery } from 'service/utils';
 import { AppContainer } from './App.styled';
 
-class App extends Component {
-  state = {
-    input: '',
-    images: [],
-    page: 1,
-    showModal: false,
-    total: 0,
-    largeImageURL: null,
-  };
+const App = () => {
+  // state = {
+  //   input: '',
+  //   images: [],
+  //   page: 1,
+  //   showModal: false,
+  //   total: 0,
+  //   largeImageURL: null,
+  //   isLoading: false,
+  // };
 
-  componentDidUpdate(prevProps, prevState) {
-    const prevInput = prevState.input;
+  const [input, setInput] = useState('');
+  const [images, setImages] = useState([]);
+  const [page, setPage] = useState(0);
+  const [showModal, setShowModal] = useState(false);
+  const [total, setTotal] = useState(0);
+  const [largeImageURL, setLargeImageURL] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-    const nextInput = this.state.input;
+  // componentDidUpdate(prevProps, prevState) {
+  //   const prevInput = prevState.input;
 
-    if (prevInput !== nextInput) {
-      this.handleData(nextInput, 1).then(({ total, hits }) => {
-        this.setState({ page: 1, images: hits, total });
-      });
-    }
-  }
+  //   const nextInput = this.state.input;
 
-  handleSearchbarSubmit = input => {
+  //   if (prevInput !== nextInput) {
+  //     this.handleData(nextInput, 1).then(({ total, hits }) => {
+  //       this.setState({ page: 1, images: hits, total });
+  //     });
+  //   }
+  // }
+
+  useEffect(() => {
+    handleData(input, 1).then(({ total, hits }) => {
+      setPage(1);
+      setImages(hits);
+      // this.setState({ page: 1, images: hits, total });
+      setTotal(total);
+    });
+  }, [input]);
+
+  const handleSearchbarSubmit = input => {
     console.log(input);
-    this.setState({ input });
+    setInput(input);
   };
 
-  handleData = async (query, page) => {
+  const handleData = async (query, page) => {
     try {
-      this.setState({ isLoading: true });
+      setIsLoading(true);
+      // this.setState({ isLoading: true });
       const data = await fetchImagesByQuery(query, page);
       console.log(data);
-      this.setState({ isLoading: false });
+      setIsLoading(false);
+      // this.setState({ isLoading: false });
       return data;
     } catch (error) {
-      this.setState({ error: error.message, isLoading: false });
+      setError(error.message);
+      setIsLoading(false);
+      // this.setState({ error: error.message, isLoading: false });
     }
   };
 
-  onNextPage = async () => {
-    let newPage = this.state.page + 1;
+  const onNextPage = async () => {
+    let newPage = page + 1;
     console.log(newPage);
-    this.setState({ isLoading: true });
-    const { hits } = await this.handleData(this.state.input, newPage);
-    this.setState(prevState => ({
-      page: newPage,
-      images: [...prevState.images, ...hits],
-      isLoading: false,
-    }));
+    setIsLoading(true);
+    // this.setState({ isLoading: true });
+    const { hits } = await handleData(input, newPage);
+    setPage(newPage);
+    setImages(prevImages => {
+      return [...prevImages, ...hits];
+    });
+    setIsLoading(false);
+
+    // this.setState(prevState => ({
+    //   page: newPage,
+    //   images: [...prevState.images, ...hits],
+    //   isLoading: false,
+    // }));
   };
 
-  toggleModal = () => {
-    this.setState(({ showModal }) => ({
-      showModal: !showModal,
-    }));
+  const toggleModal = () => {
+    setShowModal(!showModal);
+
+    // this.setState(({ showModal }) => ({
+    //   showModal: !showModal,
+    // }));
   };
 
-  handleModal = image => {
-    this.toggleModal();
-    this.setState({ largeImageURL: image.largeImageURL });
+  const handleModal = image => {
+    toggleModal();
+    setLargeImageURL(image.largeImageURL);
+
+    // this.setState({ largeImageURL: image.largeImageURL });
   };
 
-  render() {
-    return (
-      <AppContainer>
-        <Searchbar onSubmit={this.handleSearchbarSubmit} />
-        <ImageGallery
-          images={this.state.images}
-          handleModal={this.handleModal}
-        />
-        {this.state.isLoading && <Loader />}
-        {this.state.images.length < this.state.total && (
-          <Button onNextPage={this.onNextPage} />
-        )}
+  return (
+    <AppContainer>
+      <Searchbar onSubmit={handleSearchbarSubmit} />
+      <ImageGallery images={images} handleModal={handleModal} />
+      {isLoading && <Loader />}
+      {images.length < total && <Button onNextPage={onNextPage} />}
 
-        {this.state.showModal === true && (
-          <Modal toggleModal={this.toggleModal}>
-            <img src={this.state.largeImageURL} alt="" />
-          </Modal>
-        )}
-      </AppContainer>
-    );
-  }
-}
+      {showModal === true && (
+        <Modal toggleModal={toggleModal}>
+          <img src={largeImageURL} alt="" />
+        </Modal>
+      )}
+    </AppContainer>
+  );
+};
 
 export default App;
