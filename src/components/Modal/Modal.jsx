@@ -11,14 +11,6 @@ const Modal = ({ toggleModal, children }) => {
     };
   }, []);
 
-  // componentDidMount() {
-  //   window.addEventListener('keydown', handleKeyDown);
-  // }
-
-  // componentWillUnmount() {
-  //   window.removeEventListener('keydown', handleKeyDown);
-  // }
-
   const handleKeyDown = e => {
     if (e.code === 'Escape') {
       toggleModal();

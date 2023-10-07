@@ -9,16 +9,6 @@ import { fetchImagesByQuery } from 'service/utils';
 import { AppContainer } from './App.styled';
 
 const App = () => {
-  // state = {
-  //   input: '',
-  //   images: [],
-  //   page: 1,
-  //   showModal: false,
-  //   total: 0,
-  //   largeImageURL: null,
-  //   isLoading: false,
-  // };
-
   const [input, setInput] = useState('');
   const [images, setImages] = useState([]);
   const [page, setPage] = useState(1);
@@ -26,7 +16,7 @@ const App = () => {
   const [total, setTotal] = useState(0);
   const [largeImageURL, setLargeImageURL] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [setError] = useState('');
+  const [setError] = useState(null);
 
   const handleData = async (query, page) => {
     try {
@@ -37,12 +27,12 @@ const App = () => {
 
       return data;
     } catch (error) {
-      setError();
+      setError(error.message);
       setIsLoading(false);
     }
   };
 
-  useEffect(() => {
+  const loadInitialData = () => {
     if (input) {
       setImages([]);
       setIsLoading(true);
@@ -51,17 +41,24 @@ const App = () => {
         setTotal(total);
       });
     }
-  }, [input]);
+  };
 
-  useEffect(() => {
+  const loadMoreData = () => {
     if (page > 1) {
       setIsLoading(true);
-      handleData(input, page).then(({ total, hits }) => {
+      handleData(input, page).then(({ hits }) => {
         setImages(prevImages => [...prevImages, ...hits]);
-        setTotal(total);
         setIsLoading(false);
       });
     }
+  };
+
+  useEffect(() => {
+    loadInitialData();
+  }, [input]);
+
+  useEffect(() => {
+    loadMoreData();
   }, [page]);
 
   const handleSearchbarSubmit = input => {
@@ -90,7 +87,7 @@ const App = () => {
         <ImageGallery images={images} handleModal={handleModal} />
       )}
       {isLoading && <Loader />}
-      {isLoading === false && images.length < total && (
+      {!isLoading && images.length < total && (
         <Button onNextPage={onNextPage} />
       )}
 
