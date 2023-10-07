@@ -21,97 +21,78 @@ const App = () => {
 
   const [input, setInput] = useState('');
   const [images, setImages] = useState([]);
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(1);
   const [showModal, setShowModal] = useState(false);
   const [total, setTotal] = useState(0);
   const [largeImageURL, setLargeImageURL] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [setError] = useState('');
 
-  // componentDidUpdate(prevProps, prevState) {
-  //   const prevInput = prevState.input;
+  const handleData = async (query, page) => {
+    try {
+      setIsLoading(true);
+      const data = await fetchImagesByQuery(query, page);
+      console.log(data);
+      setIsLoading(false);
 
-  //   const nextInput = this.state.input;
-
-  //   if (prevInput !== nextInput) {
-  //     this.handleData(nextInput, 1).then(({ total, hits }) => {
-  //       this.setState({ page: 1, images: hits, total });
-  //     });
-  //   }
-  // }
+      return data;
+    } catch (error) {
+      setError();
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (input) {
+      setImages([]);
+      setIsLoading(true);
       handleData(input, 1).then(({ total, hits }) => {
-        setPage(1);
         setImages(hits);
-        // this.setState({ page: 1, images: hits, total });
         setTotal(total);
       });
     }
   }, [input]);
 
+  useEffect(() => {
+    if (page > 1) {
+      setIsLoading(true);
+      handleData(input, page).then(({ total, hits }) => {
+        setImages(prevImages => [...prevImages, ...hits]);
+        setTotal(total);
+        setIsLoading(false);
+      });
+    }
+  }, [page]);
+
   const handleSearchbarSubmit = input => {
     console.log(input);
     setInput(input);
+    setPage(1);
   };
 
-  const handleData = async (query, page) => {
-    try {
-      setIsLoading(true);
-      // this.setState({ isLoading: true });
-      const data = await fetchImagesByQuery(query, page);
-      console.log(data);
-      setIsLoading(false);
-      // this.setState({ isLoading: false });
-      return data;
-    } catch (error) {
-      setError();
-      setIsLoading(false);
-      // this.setState({ error: error.message, isLoading: false });
-    }
-  };
-
-  const onNextPage = async () => {
-    let newPage = page + 1;
-    console.log(newPage);
-    setIsLoading(true);
-    // this.setState({ isLoading: true });
-    const { hits } = await handleData(input, newPage);
-    setPage(newPage);
-    setImages(prevImages => {
-      return [...prevImages, ...hits];
-    });
-    setIsLoading(false);
-
-    // this.setState(prevState => ({
-    //   page: newPage,
-    //   images: [...prevState.images, ...hits],
-    //   isLoading: false,
-    // }));
+  const onNextPage = () => {
+    setPage(prevPage => prevPage + 1);
   };
 
   const toggleModal = () => {
     setShowModal(!showModal);
-
-    // this.setState(({ showModal }) => ({
-    //   showModal: !showModal,
-    // }));
   };
 
   const handleModal = image => {
     toggleModal();
     setLargeImageURL(image.largeImageURL);
-
-    // this.setState({ largeImageURL: image.largeImageURL });
   };
 
   return (
     <AppContainer>
       <Searchbar onSubmit={handleSearchbarSubmit} />
-      <ImageGallery images={images} handleModal={handleModal} />
+      {images.length > 0 && (
+        <ImageGallery images={images} handleModal={handleModal} />
+      )}
       {isLoading && <Loader />}
-      {images.length < total && <Button onNextPage={onNextPage} />}
+      {isLoading === false && images.length < total && (
+        <Button onNextPage={onNextPage} />
+      )}
 
       {showModal === true && (
         <Modal toggleModal={toggleModal}>

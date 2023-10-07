@@ -7,15 +7,15 @@ import {
 } from './ImageGalleryItem.styled';
 
 export const ImageGalleryItem = ({
-  image: { id, webformatURL, largeImageURL },
-  handleOpen,
+  image: { webformatURL, largeImageURL, id },
+  handleModal,
 }) => {
   return (
     <ImageGalleryItemWrapper>
       <ImageGalleryItemImage
         src={webformatURL}
         alt={largeImageURL}
-        onClick={handleOpen}
+        onClick={() => handleModal({ id, webformatURL, largeImageURL })}
       />
     </ImageGalleryItemWrapper>
   );
@@ -27,5 +27,5 @@ ImageGalleryItem.propTypes = {
     webformatURL: PropTypes.string,
     largeImageURL: PropTypes.string,
   }),
-  handleOpen: PropTypes.func.isRequired,
+  handleModal: PropTypes.func.isRequired,
 };
