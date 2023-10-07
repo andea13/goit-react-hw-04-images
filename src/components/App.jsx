@@ -41,12 +41,14 @@ const App = () => {
   // }
 
   useEffect(() => {
-    handleData(input, 1).then(({ total, hits }) => {
-      setPage(1);
-      setImages(hits);
-      // this.setState({ page: 1, images: hits, total });
-      setTotal(total);
-    });
+    if (input) {
+      handleData(input, 1).then(({ total, hits }) => {
+        setPage(1);
+        setImages(hits);
+        // this.setState({ page: 1, images: hits, total });
+        setTotal(total);
+      });
+    }
   }, [input]);
 
   const handleSearchbarSubmit = input => {
@@ -64,7 +66,7 @@ const App = () => {
       // this.setState({ isLoading: false });
       return data;
     } catch (error) {
-      setError(error.message);
+      setError();
       setIsLoading(false);
       // this.setState({ error: error.message, isLoading: false });
     }
