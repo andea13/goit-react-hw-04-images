@@ -55,10 +55,12 @@ const App = () => {
 
   useEffect(() => {
     loadInitialData();
+    // eslint-disable-next-line
   }, [input]);
 
   useEffect(() => {
     loadMoreData();
+    // eslint-disable-next-line
   }, [page]);
 
   const handleSearchbarSubmit = input => {
