@@ -9,7 +9,6 @@ const Modal = ({ toggleModal, children }) => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-    // eslint-disable-next-line
   }, []);
 
   const handleKeyDown = e => {

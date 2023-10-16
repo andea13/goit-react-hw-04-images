@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Searchbar from './Searchbar/Searchbar';
 import ImageGallery from '../components/ImageGallery/ImageGallery';
 import Button from '../components/Button/Button';
@@ -18,53 +18,42 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [setError] = useState(null);
 
-  const handleData = async (query, page) => {
-    try {
-      setIsLoading(true);
-      const data = await fetchImagesByQuery(query, page);
-      console.log(data);
-      setIsLoading(false);
+  const handleData = useCallback(
+    async (query, page) => {
+      try {
+        setIsLoading(true);
+        const data = await fetchImagesByQuery(query, page);
+        console.log(data);
+        setIsLoading(false);
 
-      return data;
-    } catch (error) {
-      setError(error.message);
-      setIsLoading(false);
-    }
-  };
+        return data;
+      } catch (error) {
+        setError(error.message);
+        setIsLoading(false);
+      }
+    },
+    [setError]
+  );
 
-  const loadInitialData = () => {
-    if (input) {
-      setImages([]);
+  useEffect(() => {
+    if (input && page === 1) {
       setIsLoading(true);
       handleData(input, 1).then(({ total, hits }) => {
         setImages(hits);
         setTotal(total);
       });
-    }
-  };
-
-  const loadMoreData = () => {
-    if (page > 1) {
+    } else if (page > 1) {
       setIsLoading(true);
       handleData(input, page).then(({ hits }) => {
         setImages(prevImages => [...prevImages, ...hits]);
         setIsLoading(false);
       });
     }
-  };
-
-  useEffect(() => {
-    loadInitialData();
-    // eslint-disable-next-line
-  }, [input]);
-
-  useEffect(() => {
-    loadMoreData();
-    // eslint-disable-next-line
-  }, [page]);
+  }, [input, page, handleData]);
 
   const handleSearchbarSubmit = input => {
     console.log(input);
+    setImages([]);
     setInput(input);
     setPage(1);
   };
